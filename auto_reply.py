@@ -24,20 +24,25 @@ async def auto_reply(event):
         sender = await event.get_sender()
         sender_id = sender.id
 
+        print(f"Received message from: {sender.first_name} (ID: {sender_id})")
+
         # Check if you're offline
         if not await is_user_offline():
-            return  # Do nothing if online
+            print("Skipping auto-reply because you are online.")
+            return  
 
         # Prevent spamming (reply only once per hour)
         current_time = time.time()
         if sender_id in last_reply_time and (current_time - last_reply_time[sender_id] < 3600):
-            return  # Skip reply if last reply was within an hour
+            print("Skipping auto-reply to avoid spamming.")
+            return  
 
         last_reply_time[sender_id] = current_time
         reply_message = f"Hey {sender.first_name}, I'm currently offline. I'll reply when I'm back!"
         await event.reply(reply_message)
+        print(f"Sent auto-reply to {sender.first_name}.")
 
-print("Auto-reply bot is running...")
+print("Starting Telegram auto-reply bot...")
 client.start()
 
 # Flask server to keep Render active
@@ -55,5 +60,5 @@ if __name__ == "__main__":
     t = Thread(target=lambda: asyncio.set_event_loop(loop) or loop.run_until_complete(client.run_until_disconnected()))
     t.start()
 
-    # Start Flask web server (required for Render)
+    # Start Flask web server
     app.run(host="0.0.0.0", port=10000)
